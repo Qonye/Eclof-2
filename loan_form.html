@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECLOF Kenya - Loan Application Form</title>
+    <!-- Add SignaturePad library -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <!-- Add jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Load configuration file -->
+    <script src="config.js"></script>
+    <style>
+        /* CSS variables will be set via JavaScript from CONFIG */
+        :root {
+            --primary-color: #006633;
+            --secondary-color: #CC9900;
+            --text-color: #333333;
+            --light-bg: #f9f9f9;
+            --border-color: #dddddd;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-bg);
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            flex-wrap: wrap;
+        }
+        
+        .logo img {
+            max-height: 80px;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        h1, h2, h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                min-width: 100%;
+            }
+            
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo img {
+                margin-bottom: 10px;
+            }
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 16px;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0, 102, 51, 0.2);
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .file-upload {
+            border: 1px dashed var(--border-color);
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .file-upload:hover {
+            background-color: rgba(0, 102, 51, 0.05);
+        }
+        
+        .file-upload input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+            display: none;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            align-self: flex-start;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #00552b;
+        }
+        
+        .consent-box {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin: 20px 0;
+            background-color: var(--light-bg);
+            border-radius: 4px;
+        }
+        
+        .signature-field {
+            border: 1px solid var(--border-color);
+            height: 100px;
+            margin-top: 10px;
+            position: relative;
+            background-color: white;
+            border-radius: 4px;
+        }
+        
+        .signature-field canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        .clear-signature {
+            margin-top: 8px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        
+        .clear-signature:hover {
+            background-color: #d32f2f;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        #preview-container {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            border-radius: 4px;
+        }
+
+        #profile-preview {
+            white-space: pre-line;
+        }
+
+        /* Loading indicator styles */
+        #loading-indicator {
+            padding: 15px;
+            text-align: center;
+            background-color: var(--light-bg);
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        /* Enhanced PDF styles */
+        .pdf-container {
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 4px;
+        }
+        
+        .pdf-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 600px) {
+            .pdf-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .pdf-logo {
+                margin-bottom: 10px;
+            }
+        }
+        
+        .pdf-logo img {
+            max-height: 80px;
+            max-width: 100%;
+        }
+        
+        .pdf-title {
+            color: var(--primary-color);
+            text-align: center;
+            margin: 0;
+        }
+        
+        .profile-image {
+            max-width: 150px;
+            max-height: 150px;
+            border: 1px solid var(--border-color);
+            float: right;
+            margin: 0 0 10px 20px;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 600px) {
+            .profile-image {
+                float: none;
+                display: block;
+                margin: 0 auto 15px;
+            }
+        }
+        
+        .profile-content {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .profile-content h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .profile-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+        
+        /* Download button style */
+        #downloadPdf {
+            margin-top: 15px;
+            display: block;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="images/logo.png" alt="ECLOF Kenya Logo">
+            </div>
+            <h2>Kiva Borrower Profile</h2>
+        </header>
+        
+        <h1>Loan Application Form</h1>
+        
+        <form id="loanForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="branch">Branch *</label>
+                    <input type="text" id="branch" name="branch" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="clientId">Client ID (System) *</label>
+                    <input type="text" id="clientId" name="clientId" required>
+                </div>
+                <div class="form-group">
+                    <label for="loanAmount">Loan Amount (KES) *</label>
+                    <input type="number" id="loanAmount" name="loanAmount" required>
+                </div>
+                <div class="form-group">
+                    <label for="groupName">Group Name (if applicable)</label>
+                    <input type="text" id="groupName" name="groupName">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="background">Please provide some background details about yourself and your family circumstances *</label>
+                <textarea id="background" name="background" placeholder="Your age, number and age of children, marital status, spouse's job, family support, etc." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="business">Please describe your business. What do you enjoy about it? *</label>
+                <textarea id="business" name="business" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="loanPurpose">What, specifically, will the loan be used for? *</label>
+                <textarea id="loanPurpose" name="loanPurpose" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="challenges">What are your main challenges? Why is the loan needed? How will you use the profits from the business? *</label>
+                <textarea id="challenges" name="challenges" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="community">How do you, or your business, contribute to the wider community? *</label>
+                <textarea id="community" name="community" placeholder="Do you give employment to others, give business to local suppliers, etc?" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="previousLoan">Please provide details of any ECLOF loan you have previously taken</label>
+                <textarea id="previousLoan" name="previousLoan" placeholder="What was it used for and was it fully repaid on time?"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="hopes">What are your hopes and dreams for the future, or for your children's future? How can the loan help you achieve these? *</label>
+                <textarea id="hopes" name="hopes" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="additional">Anything else you would like to say to the people across the world who are making the loan?</label>
+                <textarea id="additional" name="additional"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="profileImage">Upload Profile Image</label>
+                <div class="file-upload">
+                    <input type="file" id="profileImage" name="profileImage" accept="image/*">
+                    <p>Click to select or drop an image</p>
+                </div>
+                <img id="imagePreview" class="preview-image" alt="Profile image preview">
+            </div>
+            
+            <div class="consent-box">
+                <h3>Client Waiver Form (Loan Description and Photo Waiver)</h3>
+                <p>Original Materials, Interviews, Film, Photos, Tape and Video Consent and Release</p>
+                <p>We, ECLOF Kenya Ltd., and Kiva want to explain to the world how our loans work so that we can expand our programs. To do that, we want to use your picture, your name, video and audio recordings of you (if available), a description of your business and other general information about you, your current loan and previous loans we have made to you. By signing below, you agree that as part of the loan program we and Kiva can use all of this information anywhere in the world (including but not limited to on the internet) at any time in order to explain our loan programs and expand them. We will strive, for ourselves and Kiva, to use this information in ways that reflect fairly on you and our relationship, including providing explanatory information for delinquencies or defaults.</p>
+                <p><strong>This consent is given without expiration, and future uses do not require additional permission.</strong></p>
+                <p><strong>The below signed individual hereby consents to and gives permission to the above.</strong></p>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signaturePad">Client Signature: *</label>
+                        <div id="signaturePad" class="signature-field"></div>
+                        <button type="button" id="clearSignature" class="clear-signature">Clear Signature</button>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="printName">Client Print Name: *</label>
+                        <input type="text" id="printName" name="printName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signatureDate">Date: *</label>
+                        <input type="date" id="signatureDate" name="signatureDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Address: *</label>
+                    <input type="text" id="address" name="address" required>
+                </div>
+            </div>
+            
+            <div class="consent-box">
+                <h3>For ECLOF Kenya Ltd. Representative Use Only</h3>
+                <p><em>The following is required if the consent form has to be read to the individual:</em></p>
+                <p>I certify that I have read this consent and release form in full to the individual whose name appears above and that the individual has verbally consented to the waiver.</p>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="representativeDate">Date:</label>
+                        <input type="date" id="representativeDate" name="representativeDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="representative">ECLOF Kenya Ltd Representative Signature:</label>
+                        <div id="representativeSignature" class="signature-field"></div>
+                        <button type="button" id="clearRepSignature" class="clear-signature">Clear Signature</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" id="submitForm">Generate Client Profile</button>
+        </form>
+
+        <div id="preview-container">
+            <h2>Generated Client Profile</h2>
+            <div id="profile-preview"></div>
+            <div id="loading-indicator" style="display: none;">
+                <p>Generating profile with AI... <span class="spinner">⌛</span></p>
+                <style>
+                    @keyframes spin {
+                        0% { content: "⌛"; }
+                        50% { content: "⏳"; }
+                        100% { content: "⌛"; }
+                    }
+                    .spinner::after {
+                        content: "⌛";
+                        display: inline-block;
+                        animation: spin 1.5s infinite;
+                    }
+                </style>
+            </div>
+            <button id="downloadPdf">Download as PDF</button>
+        </div>
+        
+        <footer>
+            <p>© 2025 ECLOF Kenya Limited, Kiva's field partner. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Apply brand colors from CONFIG
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if CONFIG is available and has BRAND_COLORS
+            if (window.CONFIG && CONFIG.BRAND_COLORS) {
+                const root = document.documentElement;
+                root.style.setProperty('--primary-color', CONFIG.BRAND_COLORS.primaryColor);
+                root.style.setProperty('--secondary-color', CONFIG.BRAND_COLORS.secondaryColor);
+                root.style.setProperty('--text-color', CONFIG.BRAND_COLORS.textColor);
+                root.style.setProperty('--light-bg', CONFIG.BRAND_COLORS.lightBackground);
+                root.style.setProperty('--border-color', CONFIG.BRAND_COLORS.borderColor);
+            }
+        });
+        
+        let clientSignaturePad, representativeSignaturePad;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add debugging message on page load
+            console.log('Page loaded. Setting up form handlers...');
+            
+            // Image preview functionality
+            const imageInput = document.getElementById('profileImage');
+            const imagePreview = document.getElementById('imagePreview');
+            
+            imageInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    const url = URL.createObjectURL(file);
+                    imagePreview.src = url;
+                    imagePreview.style.display = 'block';
+                }
+            });
+            
+            // Initialize signature pads
+            try {
+                console.log('Initializing signature pads...');
+                
+                // Check if elements exist before proceeding
+                const signaturePadElement = document.getElementById('signaturePad');
+                const repSignaturePadElement = document.getElementById('representativeSignature');
+                
+                if (!signaturePadElement) {
+                    console.error('Signature pad element not found');
+                    return;
+                }
+                
+                const clientSignatureCanvas = document.createElement('canvas');
+                signaturePadElement.appendChild(clientSignatureCanvas);
+                clientSignaturePad = new SignaturePad(clientSignatureCanvas);
+                
+                const repSignatureCanvas = document.createElement('canvas');
+                repSignaturePadElement.appendChild(repSignatureCanvas);
+                representativeSignaturePad = new SignaturePad(repSignatureCanvas);
+                
+                // Clear signature buttons
+                document.getElementById('clearSignature').addEventListener('click', () => {
+                    clientSignaturePad.clear();
+                });
+                
+                document.getElementById('clearRepSignature').addEventListener('click', () => {
+                    representativeSignaturePad.clear();
+                });
+                
+                // Handle window resize for signature pads
+                window.addEventListener('resize', resizeSignaturePads);
+                resizeSignaturePads();
+                
+                console.log('Signature pads initialized successfully');
+            } catch (error) {
+                console.error('Error initializing signature pads:', error);
+            }
+            
+            // Form submission
+            try {
+                console.log('Setting up form submission handler...');
+                const form = document.getElementById('loanForm');
+                
+                if (!form) {
+                    console.error('Form element not found');
+                    return;
+                }
+                
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    console.log('Form submitted');
+                    
+                    // Validate signatures
+                    if (clientSignaturePad.isEmpty()) {
+                        alert('Please provide client signature');
+                        return;
+                    }
+                    
+                    try {
+                        // Collect form data
+                        const formData = new FormData(form);
+                        const data = Object.fromEntries(formData.entries());
+                        
+                        console.log('Form data collected:', data);
+                        
+                        // Add signatures to data
+                        data.clientSignature = clientSignaturePad.toDataURL();
+                        data.representativeSignature = representativeSignaturePad.isEmpty() ? null : representativeSignaturePad.toDataURL();
+                        
+                        // Show loading indicator
+                        document.getElementById('loading-indicator').style.display = 'block';
+                        document.getElementById('preview-container').style.display = 'block';
+                        
+                        // Generate profile without relying on image upload logic
+                        try {
+                            console.log('Generating profile...');
+                            // Always generate the profile first
+                            const profile = await generateProfileWithAI(data);
+                            console.log('Profile generated successfully');
+                            
+                            // Then handle image if available
+                            const imageInput = document.getElementById('profileImage');
+                            if (imageInput.files.length > 0) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                    data.profileImageData = event.target.result;
+                                    // Create PDF preview with image
+                                    createPdfPreview(data, profile);
+                                };
+                                reader.readAsDataURL(imageInput.files[0]);
+                            } else {
+                                // Create PDF preview without image
+                                createPdfPreview(data, profile);
+                            }
+                            
+                            // Hide loading indicator
+                            document.getElementById('loading-indicator').style.display = 'none';
+                            
+                            // Scroll to the preview
+                            document.getElementById('preview-container').scrollIntoView({behavior: 'smooth'});
+                        } catch (error) {
+                            console.error("Error generating profile:", error);
+                            alert("There was an error generating the profile. Please try again.");
+                            document.getElementById('loading-indicator').style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Error processing form submission:', error);
+                        alert('An error occurred while processing your form. Please try again.');
+                        document.getElementById('loading-indicator').style.display = 'none';
+                    }
+                });
+                
+                console.log('Form submission handler set up successfully');
+            } catch (error) {
+                console.error('Error setting up form submission handler:', error);
+            }
+            
+            // PDF download button
+            document.getElementById('downloadPdf').addEventListener('click', generatePDF);
+        });
+        
+        function resizeSignaturePads() {
+            if (clientSignaturePad) {
+                const canvas = clientSignaturePad._canvas;
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const parent = canvas.parentElement;
+                canvas.width = parent.clientWidth * ratio;
+                canvas.height = parent.clientHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                clientSignaturePad.clear();
+            }
+            
+            if (representativeSignaturePad) {
+                const canvas = representativeSignaturePad._canvas;
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const parent = canvas.parentElement;
+                canvas.width = parent.clientWidth * ratio;
+                canvas.height = parent.clientHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                representativeSignaturePad.clear();
+            }
+        }
+        
+        async function generateProfileWithAI(data) {
+            // Log the attempt to generate a profile
+            console.log('Generating profile for:', data.name);
+            
+            try {
+                // Instead of trying to call the API during troubleshooting, 
+                // let's use the local generation to verify the form works
+                console.log('Using local profile generation for testing');
+                return generateLocalProfile(data);
+                
+                /* Original API code commented out for troubleshooting
+                // Check if CONFIG is available
+                if (!CONFIG) {
+                    console.warn("Configuration not loaded. Using fallback method.");
+                    return generateLocalProfile(data);
+                }
+                
+                // Determine which API provider to use
+                const provider = CONFIG.API_PROVIDER || "local";
+                
+                // Try to use the selected API provider
+                try {
+                    let response;
+                    switch (provider.toLowerCase()) {
+                        case "openai":
+                            response = await callOpenAI(prompt);
+                            break;
+                        // ...other providers...
+                        case "local":
+                        default:
+                            console.log("Using local profile generation");
+                            return generateLocalProfile(data);
+                    }
+                    
+                    // Check if the response indicates API limitations
+                    if (response.includes("unable to") && response.includes("but I can")) {
+                        console.warn("API returned a limitation message. Using fallback generation instead.");
+                        return generateLocalProfile(data);
+                    }
+                    
+                    // If response contains a properly formatted profile, use it
+                    if (response.includes("**") && (response.includes("ECLOF-Kenya") || response.includes("KES"))) {
+                        return response;
+                    } else {
+                        // Response doesn't look like a proper profile
+                        console.warn("API response doesn't match expected format. Using fallback generation.");
+                        return generateLocalProfile(data);
+                    }
+                    
+                } catch (apiError) {
+                    console.warn(`API call to ${provider} failed, using local fallback:`, apiError);
+                    return generateLocalProfile(data);
+                }
+                */
+            } catch (error) {
+                console.error("Error in profile generation:", error);
+                // Use fallback in case of errors
+                return generateLocalProfile(data);
+            }
+        }
+        
+        async function generateProfileWithAI(data) {
+            // Prepare the prompt for the AI/LLM based on form data
+            const prompt = `
+Generate a borrower profile summary based on the following information. Follow these instructions:
+
+1. Create a concise summary in a single paragraph consisting of 10-11 sentences. 
+2. Format the borrower's name in **bold** (${data.name}).
+3. Create a humorous pun related to the business (${data.business}) or loan purpose (${data.loanPurpose}).
+4. Use professional terminology and correct formatting.
+5. Format currency as KES with commas (${data.loanAmount} KES).
+6. Use the term "ECLOF-Kenya Limited, Kiva's field partner" instead of just "ECLOF".
+7. Title the summary by the loan usage.
+
+Borrower Information:
+- Name: ${data.name}
+- Branch: ${data.branch}
+- Client ID: ${data.clientId}
+- Loan Amount: ${data.loanAmount} KES
+- Group Name: ${data.groupName || "N/A"}
+- Background: ${data.background}
+- Business Description: ${data.business}
+- Loan Purpose: ${data.loanPurpose}
+- Challenges: ${data.challenges}
+- Community Contribution: ${data.community}
+- Previous Loans: ${data.previousLoan || "None"}
+- Future Dreams: ${data.hopes}
+- Additional Comments: ${data.additional || "None"}
+
+The date is April 7, 2025.
+`;
+
+            try {
+                // Check if CONFIG is available
+                if (!CONFIG) {
+                    console.warn("Configuration not loaded. Using fallback method.");
+                    return generateLocalProfile(data);
+                }
+                
+                // Determine which API provider to use
+                const provider = CONFIG.API_PROVIDER || "local";
+                
+                // Try to use the selected API provider
+                try {
+                    let response;
+                    switch (provider.toLowerCase()) {
+                        case "openai":
+                            response = await callOpenAI(prompt);
+                            break;
+                        case "anthropic":
+                            response = await callAnthropic(prompt);
+                            break;
+                        case "cohere":
+                            response = await callCohere(prompt);
+                            break;
+                        case "azure":
+                            response = await callAzure(prompt);
+                            break;
+                        case "gemini":
+                            response = await callGemini(prompt);
+                            break;
+                        case "grok":
+                            response = await callGrok(prompt);
+                            break;
+                        case "deepseek":
+                            response = await callDeepSeek(prompt);
+                            break;
+                        case "local":
+                        default:
+                            console.log("Using local profile generation");
+                            return generateLocalProfile(data);
+                    }
+                    
+                    // Check if the response indicates API limitations
+                    if (response.includes("unable to") && response.includes("but I can")) {
+                        console.warn("API returned a limitation message. Using fallback generation instead.");
+                        return generateLocalProfile(data);
+                    }
+                    
+                    // If response contains a properly formatted profile, use it
+                    if (response.includes("**") && (response.includes("ECLOF-Kenya") || response.includes("KES"))) {
+                        return response;
+                    } else {
+                        // Response doesn't look like a proper profile
+                        console.warn("API response doesn't match expected format. Using fallback generation.");
+                        return generateLocalProfile(data);
+                    }
+                    
+                } catch (apiError) {
+                    console.warn(`API call to ${provider} failed, using local fallback:`, apiError);
+                    return generateLocalProfile(data);
+                }
+            } catch (error) {
+                console.error("Error in profile generation:", error);
+                throw error;
+            }
+        }
+        
+        // API Provider-specific implementations
+        async function callOpenAI(prompt) {
+            if (!CONFIG.OPENAI_API_KEY || CONFIG.OPENAI_API_KEY === "YOUR_OPENAI_KEY_HERE") {
+                throw new Error("OpenAI API key not configured");
+            }
+            
+            const response = await fetch(CONFIG.OPENAI_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${CONFIG.OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: CONFIG.OPENAI_MODEL,
+                    messages: [
+                        { role: "system", content: "You are a professional writer crafting loan profiles for ECLOF Kenya." },
+                        { role: "user", content: prompt }
+                    ],
+                    max_tokens: CONFIG.MAX_TOKENS,
+                    temperature: CONFIG.TEMPERATURE
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                return result.choices[0].message.content.trim();
+            } else {
+                const errorData = await response.json();
+                throw new Error(`OpenAI API Error: ${errorData.error?.message || JSON.stringify(errorData)}`);
+            }
+        }
+        
+        async function callAnthropic(prompt) {
+            if (!CONFIG.ANTHROPIC_API_KEY || CONFIG.ANTHROPIC_API_KEY === "YOUR_ANTHROPIC_KEY_HERE") {
+                throw new Error("Anthropic API key not configured");
+            }
+            
+            const response = await fetch(CONFIG.ANTHROPIC_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': CONFIG.ANTHROPIC_API_KEY,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify({
+                    model: CONFIG.ANTHROPIC_MODEL,
+                    messages: [
+                        { role: "user", content: prompt }
+                    ],
+                    max_tokens: CONFIG.MAX_TOKENS
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                return result.content[0].text.trim();
+            } else {
+                const errorData = await response.json();
+                throw new Error(`Anthropic API Error: ${errorData.error?.message || JSON.stringify(errorData)}`);
+            }
+        }
+        
+        async function callCohere(prompt) {
+            if (!CONFIG.COHERE_API_KEY || CONFIG.COHERE_API_KEY === "YOUR_COHERE_KEY_HERE") {
+                throw new Error("Cohere API key not configured");
+            }
+            
+            const response = await fetch(CONFIG.COHERE_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${CONFIG.COHERE_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: CONFIG.COHERE_MODEL,
+                    prompt: prompt,
+                    max_tokens: CONFIG.MAX_TOKENS,
+                    temperature: CONFIG.TEMPERATURE
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                return result.generations[0].text.trim();
+            } else {
+                const errorData = await response.json();
+                throw new Error(`Cohere API Error: ${errorData.message || JSON.stringify(errorData)}`);
+            }
+        }
+        
+        async function callAzure(prompt) {
+            if (!CONFIG.AZURE_API_KEY || CONFIG.AZURE_API_KEY === "YOUR_AZURE_KEY_HERE") {
+                throw new Error("Azure API key not configured");
+            }
+            
+            const response = await fetch(CONFIG.AZURE_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'api-key': CONFIG.AZURE_API_KEY
+                },
+                body: JSON.stringify({
+                    messages: [
+                        { role: "system", content: "You are a professional writer crafting loan profiles for ECLOF Kenya." },
+                        { role: "user", content: prompt }
+                    ],
+                    max_tokens: CONFIG.MAX_TOKENS,
+                    temperature: CONFIG.TEMPERATURE
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                return result.choices[0].message.content.trim();
+            } else {
+                const errorData = await response.json();
+                throw new Error(`Azure API Error: ${errorData.error?.message || JSON.stringify(errorData)}`);
+            }
+        }
+        
+        async function callGemini(prompt) {
+            if (!CONFIG.GEMINI_API_KEY || CONFIG.GEMINI_API_KEY === "YOUR_GEMINI_KEY_HERE") {
+                throw new Error("Gemini API key not configured");
+            }
+            
+            const response = await fetch(`${CONFIG.GEMINI_API_ENDPOINT}?key=${CONFIG.GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            parts: [
+                                { text: prompt }
+                            ]
+                        }
+                    ],
+                    generationConfig: {
+                        temperature: CONFIG.TEMPERATURE,
+                        maxOutputTokens: CONFIG.MAX_TOKENS,
+                    }
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                return result.candidates[0].content.parts[0].text.trim();
+            } else {
+                const errorData = await response.json();
+                throw new Error(`Gemini API Error: ${errorData.error?.message || JSON.stringify(errorData)}`);
+            }
+        }
+        
+        async function callGrok(prompt) {
+            if (!CONFIG.GROK_API_KEY || CONFIG.GROK_API_KEY === "YOUR_GROK_KEY_HERE") {
+                throw new Error("Grok API key not configured");
+            }
+            
+            const response = await fetch(CONFIG.GROK_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${CONFIG.GROK_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: CONFIG.GROK_MODEL,
+                    messages: [
+                        { role: "system", content: "You are a professional writer crafting loan profiles for ECLOF Kenya." },
+                        { role: "user", content: prompt }
+                    ],
+                    max_tokens: CONFIG.MAX_TOKENS,
+                    temperature: CONFIG.TEMPERATURE
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                return result.choices[0].message.content.trim();
+            } else {
+                const errorData = await response.json();
+                throw new Error(`Grok API Error: ${errorData.error?.message || JSON.stringify(errorData)}`);
+            }
+        }
+        
+        async function callDeepSeek(prompt) {
+            if (!CONFIG.DEEPSEEK_API_KEY || CONFIG.DEEPSEEK_API_KEY === "YOUR_DEEPSEEK_KEY_HERE") {
+                throw new Error("DeepSeek API key not configured");
+            }
+            
+            const response = await fetch(CONFIG.DEEPSEEK_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${CONFIG.DEEPSEEK_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: CONFIG.DEEPSEEK_MODEL,
+                    messages: [
+                        { role: "system", content: "You are a professional writer crafting loan profiles for ECLOF Kenya." },
+                        { role: "user", content: prompt }
+                    ],
+                    max_tokens: CONFIG.MAX_TOKENS,
+                    temperature: CONFIG.TEMPERATURE
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                return result.choices[0].message.content.trim();
+            } else {
+                const errorData = await response.json();
+                throw new Error(`DeepSeek API Error: ${errorData.error?.message || JSON.stringify(errorData)}`);
+            }
+        }
+        
+        // Fallback local profile generation when API is unavailable
+        function generateLocalProfile(data) {
+            // Format name
+            const name = data.name.trim();
+            const formattedName = name.split(' ')
+                .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+                .join(' ');
+            
+            // Format loan amount with commas and currency
+            const loanAmount = parseInt(data.loanAmount).toLocaleString() + ' KES';
+            
+            // Generate a creative pun based on the business or loan purpose
+            const businessType = data.business.toLowerCase();
+            const loanPurpose = data.loanPurpose.toLowerCase();
+            
+            let pun = '';
+            if (businessType.includes('farm') || loanPurpose.includes('farm')) {
+                pun = "This investment will surely help their business grow from the ground up!";
+            } else if (businessType.includes('tailor') || loanPurpose.includes('cloth') || loanPurpose.includes('sew')) {
+                pun = "Their business is certainly cut from a different cloth!";
+            } else if (businessType.includes('food') || businessType.includes('restaurant')) {
+                pun = "Their recipe for success is certainly cooking up profits!";
+            } else if (businessType.includes('shop') || loanPurpose.includes('shop')) {
+                pun = "With this investment, their business is certainly not going to be shelf-ish!";
+            } else {
+                pun = "This entrepreneur is certainly cashing in on their dreams!";
+            }
+            
+            // Extract a loan title based on purpose
+            const purposeWords = data.loanPurpose.trim().split(' ');
+            const capitalizedWords = purposeWords.map(word => 
+                word.length > 3 ? word.charAt(0).toUpperCase() + word.slice(1) : word
+            );
+            const title = capitalizedWords.join(' ');
+            
+            // Generate the profile following NLP.md instructions
+            const profile = `# ${title}
+
+**${formattedName}** is ${data.background}. ${formattedName} operates a thriving business where ${data.business}. ${pun} The entrepreneur is seeking a loan of ${loanAmount} to ${data.loanPurpose.toLowerCase()}. When discussing challenges, ${formattedName} explained that ${data.challenges}. In the local community, ${formattedName} actively contributes by ${data.community}.
+
+Looking toward the future, ${formattedName} dreams of ${data.hopes}. ${data.previousLoan ? `Previously, ${formattedName} had taken a loan from ECLOF-Kenya Limited, Kiva's field partner, which ${data.previousLoan}.` : ''} ${data.additional ? `${data.additional}` : ''}
+
+*This profile was prepared on April 7, 2025 for ECLOF-Kenya Limited, Kiva's field partner.*`;
+            
+            return profile;
+        }
+        
+        function createPdfPreview(data, profileText) {
+            const previewContainer = document.getElementById('profile-preview');
+            
+            // Clear previous content
+            previewContainer.innerHTML = '';
+            
+            // Create PDF preview structure
+            const pdfPreview = document.createElement('div');
+            pdfPreview.className = 'pdf-container';
+            pdfPreview.id = 'pdfContent';
+            
+            // Add header
+            const header = document.createElement('div');
+            header.className = 'pdf-header';
+            
+            const logo = document.createElement('div');
+            logo.className = 'pdf-logo';
+            const logoImg = document.createElement('img');
+            logoImg.src = 'images/logo.png';
+            logoImg.alt = 'ECLOF Kenya Logo';
+            logo.appendChild(logoImg);
+            
+            const title = document.createElement('h2');
+            title.className = 'pdf-title';
+            title.textContent = 'Borrower Profile';
+            
+            header.appendChild(logo);
+            header.appendChild(title);
+            pdfPreview.appendChild(header);
+            
+            // Add profile content
+            const content = document.createElement('div');
+            content.className = 'profile-content';
+            
+            // Add profile image if available
+            if (data.profileImageData) {
+                const img = document.createElement('img');
+                img.src = data.profileImageData;
+                img.className = 'profile-image';
+                img.alt = data.name;
+                content.appendChild(img);
+            }
+            
+            // Convert markdown profile to HTML
+            const markdownLines = profileText.split('\n');
+            
+            markdownLines.forEach(line => {
+                if (line.startsWith('# ')) {
+                    const h1 = document.createElement('h1');
+                    h1.textContent = line.substring(2);
+                    content.appendChild(h1);
+                } else if (line.trim() === '') {
+                    const br = document.createElement('br');
+                    content.appendChild(br);
+                } else {
+                    // Process bold text wrapped in ** **
+                    let processedLine = line;
+                    
+                    // Find all occurrences of **text**
+                    const boldRegex = /\*\*(.*?)\*\*/g;
+                    processedLine = processedLine.replace(boldRegex, '<strong>$1</strong>');
+                    
+                    // Find all occurrences of *text*
+                    const italicRegex = /\*(.*?)\*/g;
+                    processedLine = processedLine.replace(italicRegex, '<em>$1</em>');
+                    
+                    const p = document.createElement('p');
+                    p.innerHTML = processedLine;
+                    content.appendChild(p);
+                }
+            });
+            
+            pdfPreview.appendChild(content);
+            
+            // Add footer
+            const footer = document.createElement('div');
+            footer.className = 'profile-footer';
+            footer.innerHTML = `© ${new Date().getFullYear()} ECLOF Kenya Limited, Kiva's field partner. All rights reserved.`;
+            pdfPreview.appendChild(footer);
+            
+            // Add the preview to the container
+            previewContainer.appendChild(pdfPreview);
+        }
+        
+        function generatePDF() {
+            console.log('Generating PDF...');
+            
+            // Get the PDF content element
+            const element = document.getElementById('pdfContent');
+            
+            if (!element) {
+                console.error('PDF content element not found');
+                alert('Error: Could not find content to generate PDF. Please try again.');
+                return;
+            }
+            
+            try {
+                // Show loading message
+                const downloadBtn = document.getElementById('downloadPdf');
+                const originalText = downloadBtn.textContent;
+                downloadBtn.textContent = 'Generating PDF...';
+                downloadBtn.disabled = true;
+                
+                // Use html2canvas to create an image of the element
+                html2canvas(element, {
+                    scale: 2, // Higher scale for better quality
+                    useCORS: true, // Enable CORS for images
+                    logging: false,
+                    onclone: function(clonedDoc) {
+                        // Any adjustments to the cloned document before rendering
+                        console.log('Document cloned for PDF generation');
+                    }
+                }).then(canvas => {
+                    console.log('Canvas generated, creating PDF...');
+                    
+                    try {
+                        // Create the PDF
+                        const imgData = canvas.toDataURL('image/png');
+                        
+                        // Check if jspdf is available
+                        if (!window.jspdf || !window.jspdf.jsPDF) {
+                            throw new Error('jsPDF library not loaded properly');
+                        }
+                        
+                        const pdf = new jspdf.jsPDF({
+                            orientation: 'portrait',
+                            unit: 'mm',
+                            format: 'a4'
+                        });
+                        
+                        const imgWidth = 210; // A4 width in mm
+                        const pageHeight = 297; // A4 height in mm
+                        const imgHeight = canvas.height * imgWidth / canvas.width;
+                        
+                        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                        
+                        // Save the PDF with a meaningful filename
+                        const borrowerName = document.getElementById('name').value.trim() || 'borrower';
+                        const sanitizedName = borrowerName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                        const filename = `${sanitizedName}_profile.pdf`;
+                        
+                        pdf.save(filename);
+                        console.log('PDF saved successfully');
+                    } catch (pdfError) {
+                        console.error('Error creating PDF:', pdfError);
+                        alert('Error creating PDF: ' + pdfError.message);
+                    } finally {
+                        // Reset button state
+                        downloadBtn.textContent = originalText;
+                        downloadBtn.disabled = false;
+                    }
+                }).catch(canvasError => {
+                    console.error('Error generating canvas for PDF:', canvasError);
+                    alert('Error generating PDF: ' + canvasError.message);
+                    
+                    // Reset button state
+                    downloadBtn.textContent = originalText;
+                    downloadBtn.disabled = false;
+                });
+            } catch (error) {
+                console.error('Error in PDF generation process:', error);
+                alert('Error generating PDF: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
