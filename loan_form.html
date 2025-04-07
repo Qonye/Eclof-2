@@ -688,67 +688,6 @@
         }
         
         async function generateProfileWithAI(data) {
-            // Log the attempt to generate a profile
-            console.log('Generating profile for:', data.name);
-            
-            try {
-                // Instead of trying to call the API during troubleshooting, 
-                // let's use the local generation to verify the form works
-                console.log('Using local profile generation for testing');
-                return generateLocalProfile(data);
-                
-                /* Original API code commented out for troubleshooting
-                // Check if CONFIG is available
-                if (!CONFIG) {
-                    console.warn("Configuration not loaded. Using fallback method.");
-                    return generateLocalProfile(data);
-                }
-                
-                // Determine which API provider to use
-                const provider = CONFIG.API_PROVIDER || "local";
-                
-                // Try to use the selected API provider
-                try {
-                    let response;
-                    switch (provider.toLowerCase()) {
-                        case "openai":
-                            response = await callOpenAI(prompt);
-                            break;
-                        // ...other providers...
-                        case "local":
-                        default:
-                            console.log("Using local profile generation");
-                            return generateLocalProfile(data);
-                    }
-                    
-                    // Check if the response indicates API limitations
-                    if (response.includes("unable to") && response.includes("but I can")) {
-                        console.warn("API returned a limitation message. Using fallback generation instead.");
-                        return generateLocalProfile(data);
-                    }
-                    
-                    // If response contains a properly formatted profile, use it
-                    if (response.includes("**") && (response.includes("ECLOF-Kenya") || response.includes("KES"))) {
-                        return response;
-                    } else {
-                        // Response doesn't look like a proper profile
-                        console.warn("API response doesn't match expected format. Using fallback generation.");
-                        return generateLocalProfile(data);
-                    }
-                    
-                } catch (apiError) {
-                    console.warn(`API call to ${provider} failed, using local fallback:`, apiError);
-                    return generateLocalProfile(data);
-                }
-                */
-            } catch (error) {
-                console.error("Error in profile generation:", error);
-                // Use fallback in case of errors
-                return generateLocalProfile(data);
-            }
-        }
-        
-        async function generateProfileWithAI(data) {
             // Prepare the prompt for the AI/LLM based on form data
             const prompt = `
 Generate a borrower profile summary based on the following information. Follow these instructions:
@@ -780,6 +719,9 @@ The date is April 7, 2025.
 `;
 
             try {
+                // Log the generation attempt
+                console.log('Generating profile for:', data.name);
+                
                 // Check if CONFIG is available
                 if (!CONFIG) {
                     console.warn("Configuration not loaded. Using fallback method.");
@@ -788,30 +730,39 @@ The date is April 7, 2025.
                 
                 // Determine which API provider to use
                 const provider = CONFIG.API_PROVIDER || "local";
+                console.log(`Using API provider: ${provider}`);
                 
                 // Try to use the selected API provider
                 try {
                     let response;
                     switch (provider.toLowerCase()) {
                         case "openai":
+                            console.log("Calling OpenAI API...");
                             response = await callOpenAI(prompt);
+                            console.log("OpenAI API response received");
                             break;
                         case "anthropic":
+                            console.log("Calling Anthropic API...");
                             response = await callAnthropic(prompt);
                             break;
                         case "cohere":
+                            console.log("Calling Cohere API...");
                             response = await callCohere(prompt);
                             break;
                         case "azure":
+                            console.log("Calling Azure API...");
                             response = await callAzure(prompt);
                             break;
                         case "gemini":
+                            console.log("Calling Gemini API...");
                             response = await callGemini(prompt);
                             break;
                         case "grok":
+                            console.log("Calling Grok API...");
                             response = await callGrok(prompt);
                             break;
                         case "deepseek":
+                            console.log("Calling DeepSeek API...");
                             response = await callDeepSeek(prompt);
                             break;
                         case "local":
@@ -821,13 +772,14 @@ The date is April 7, 2025.
                     }
                     
                     // Check if the response indicates API limitations
-                    if (response.includes("unable to") && response.includes("but I can")) {
+                    if (response && (response.includes("unable to") && response.includes("but I can"))) {
                         console.warn("API returned a limitation message. Using fallback generation instead.");
                         return generateLocalProfile(data);
                     }
                     
                     // If response contains a properly formatted profile, use it
-                    if (response.includes("**") && (response.includes("ECLOF-Kenya") || response.includes("KES"))) {
+                    if (response && (response.includes("**") && (response.includes("ECLOF-Kenya") || response.includes("KES")))) {
+                        console.log("Using AI-generated profile");
                         return response;
                     } else {
                         // Response doesn't look like a proper profile
@@ -841,7 +793,8 @@ The date is April 7, 2025.
                 }
             } catch (error) {
                 console.error("Error in profile generation:", error);
-                throw error;
+                // Use fallback in case of errors
+                return generateLocalProfile(data);
             }
         }
         
@@ -1128,6 +1081,8 @@ Looking toward the future, ${formattedName} dreams of ${data.hopes}. ${data.prev
             const logoImg = document.createElement('img');
             logoImg.src = 'images/logo.png';
             logoImg.alt = 'ECLOF Kenya Logo';
+            // Add crossorigin attribute to prevent tainting the canvas
+            logoImg.crossOrigin = 'anonymous'; 
             logo.appendChild(logoImg);
             
             const title = document.createElement('h2');
@@ -1138,30 +1093,125 @@ Looking toward the future, ${formattedName} dreams of ${data.hopes}. ${data.prev
             header.appendChild(title);
             pdfPreview.appendChild(header);
             
-            // Add profile content
-            const content = document.createElement('div');
-            content.className = 'profile-content';
+            // Create a more professional layout with sections and boxes
+            const profileContainer = document.createElement('div');
+            profileContainer.className = 'profile-container';
+            profileContainer.style.display = 'flex';
+            profileContainer.style.flexDirection = 'row';
+            profileContainer.style.flexWrap = 'wrap';
+            profileContainer.style.gap = '15px';
+            profileContainer.style.marginTop = '20px';
+            
+            // Create left column for borrower info
+            const leftColumn = document.createElement('div');
+            leftColumn.className = 'profile-left-column';
+            leftColumn.style.flex = '1';
+            leftColumn.style.minWidth = '250px';
             
             // Add profile image if available
             if (data.profileImageData) {
+                const imageBox = document.createElement('div');
+                imageBox.className = 'profile-image-box';
+                imageBox.style.border = '1px solid #ddd';
+                imageBox.style.borderRadius = '4px';
+                imageBox.style.padding = '10px';
+                imageBox.style.marginBottom = '15px';
+                imageBox.style.backgroundColor = '#f9f9f9';
+                
                 const img = document.createElement('img');
                 img.src = data.profileImageData;
                 img.className = 'profile-image';
                 img.alt = data.name;
-                content.appendChild(img);
+                img.style.width = '100%';
+                img.style.height = 'auto';
+                img.style.maxHeight = '300px';
+                img.style.objectFit = 'contain';
+                img.style.display = 'block';
+                img.style.margin = '0 auto';
+                
+                imageBox.appendChild(img);
+                leftColumn.appendChild(imageBox);
             }
+            
+            // Create borrower details section
+            const detailsBox = document.createElement('div');
+            detailsBox.className = 'borrower-details-box';
+            detailsBox.style.border = '1px solid #ddd';
+            detailsBox.style.borderRadius = '4px';
+            detailsBox.style.padding = '15px';
+            detailsBox.style.marginBottom = '15px';
+            detailsBox.style.backgroundColor = '#f9f9f9';
+            
+            const detailsTitle = document.createElement('h3');
+            detailsTitle.style.marginTop = '0';
+            detailsTitle.style.color = '#006633';
+            detailsTitle.textContent = 'Borrower Details';
+            detailsBox.appendChild(detailsTitle);
+            
+            // Create details table
+            const detailsTable = document.createElement('table');
+            detailsTable.style.width = '100%';
+            detailsTable.style.borderCollapse = 'collapse';
+            
+            // Add borrower details rows
+            const addDetailRow = (label, value) => {
+                const row = document.createElement('tr');
+                
+                const labelCell = document.createElement('td');
+                labelCell.style.padding = '5px';
+                labelCell.style.fontWeight = 'bold';
+                labelCell.textContent = label;
+                
+                const valueCell = document.createElement('td');
+                valueCell.style.padding = '5px';
+                valueCell.textContent = value;
+                
+                row.appendChild(labelCell);
+                row.appendChild(valueCell);
+                detailsTable.appendChild(row);
+            };
+            
+            addDetailRow('Name:', data.name);
+            addDetailRow('Branch:', data.branch);
+            addDetailRow('Client ID:', data.clientId);
+            addDetailRow('Loan Amount:', parseInt(data.loanAmount).toLocaleString() + ' KES');
+            if (data.groupName) {
+                addDetailRow('Group Name:', data.groupName);
+            }
+            
+            detailsBox.appendChild(detailsTable);
+            leftColumn.appendChild(detailsBox);
+            
+            // Right column for profile narrative
+            const rightColumn = document.createElement('div');
+            rightColumn.className = 'profile-right-column';
+            rightColumn.style.flex = '2';
+            rightColumn.style.minWidth = '300px';
+            
+            // Process the profile text
+            const profileBox = document.createElement('div');
+            profileBox.className = 'profile-narrative-box';
+            profileBox.style.border = '1px solid #ddd';
+            profileBox.style.borderRadius = '4px';
+            profileBox.style.padding = '20px';
+            profileBox.style.backgroundColor = 'white';
             
             // Convert markdown profile to HTML
             const markdownLines = profileText.split('\n');
+            let title = '';
             
-            markdownLines.forEach(line => {
+            markdownLines.forEach((line, index) => {
                 if (line.startsWith('# ')) {
+                    title = line.substring(2);
                     const h1 = document.createElement('h1');
-                    h1.textContent = line.substring(2);
-                    content.appendChild(h1);
+                    h1.style.color = '#006633';
+                    h1.style.marginTop = '0';
+                    h1.style.fontSize = '24px';
+                    h1.textContent = title;
+                    profileBox.appendChild(h1);
                 } else if (line.trim() === '') {
                     const br = document.createElement('br');
-                    content.appendChild(br);
+                    profileBox.appendChild(br);
                 } else {
                     // Process bold text wrapped in ** **
                     let processedLine = line;
@@ -1176,16 +1226,51 @@ Looking toward the future, ${formattedName} dreams of ${data.hopes}. ${data.prev
                     
                     const p = document.createElement('p');
                     p.innerHTML = processedLine;
-                    content.appendChild(p);
+                    p.style.lineHeight = '1.6';
+                    profileBox.appendChild(p);
                 }
             });
             
-            pdfPreview.appendChild(content);
+            rightColumn.appendChild(profileBox);
+            
+            // Add loan usage section
+            const loanUsageBox = document.createElement('div');
+            loanUsageBox.className = 'loan-usage-box';
+            loanUsageBox.style.border = '1px solid #ddd';
+            loanUsageBox.style.borderRadius = '4px';
+            loanUsageBox.style.padding = '15px';
+            loanUsageBox.style.marginTop = '15px';
+            loanUsageBox.style.backgroundColor = '#f9f9f9';
+            
+            const loanUsageTitle = document.createElement('h3');
+            loanUsageTitle.style.marginTop = '0';
+            loanUsageTitle.style.color = '#006633';
+            loanUsageTitle.textContent = 'Loan Purpose';
+            loanUsageBox.appendChild(loanUsageTitle);
+            
+            const loanUsageText = document.createElement('p');
+            loanUsageText.textContent = data.loanPurpose;
+            loanUsageBox.appendChild(loanUsageText);
+            
+            rightColumn.appendChild(loanUsageBox);
+            
+            // Add columns to container
+            profileContainer.appendChild(leftColumn);
+            profileContainer.appendChild(rightColumn);
+            
+            // Add the profile container to the PDF preview
+            pdfPreview.appendChild(profileContainer);
             
             // Add footer
             const footer = document.createElement('div');
             footer.className = 'profile-footer';
             footer.innerHTML = `© ${new Date().getFullYear()} ECLOF Kenya Limited, Kiva's field partner. All rights reserved.`;
+            footer.style.marginTop = '30px';
+            footer.style.textAlign = 'center';
+            footer.style.fontSize = '12px';
+            footer.style.color = '#666';
+            footer.style.borderTop = '1px solid #ddd';
+            footer.style.paddingTop = '10px';
             pdfPreview.appendChild(footer);
             
             // Add the preview to the container
@@ -1211,65 +1296,99 @@ Looking toward the future, ${formattedName} dreams of ${data.hopes}. ${data.prev
                 downloadBtn.textContent = 'Generating PDF...';
                 downloadBtn.disabled = true;
                 
-                // Use html2canvas to create an image of the element
-                html2canvas(element, {
-                    scale: 2, // Higher scale for better quality
-                    useCORS: true, // Enable CORS for images
-                    logging: false,
-                    onclone: function(clonedDoc) {
-                        // Any adjustments to the cloned document before rendering
-                        console.log('Document cloned for PDF generation');
-                    }
-                }).then(canvas => {
-                    console.log('Canvas generated, creating PDF...');
-                    
-                    try {
-                        // Create the PDF
-                        const imgData = canvas.toDataURL('image/png');
-                        
-                        // Check if jspdf is available
-                        if (!window.jspdf || !window.jspdf.jsPDF) {
-                            throw new Error('jsPDF library not loaded properly');
+                // Create a clone of the content to handle image issues
+                const clone = element.cloneNode(true);
+                document.body.appendChild(clone);
+                clone.style.position = 'absolute';
+                clone.style.left = '-9999px';
+                
+                // Replace all images with canvas to work around CORS issues
+                const convertImagesToCanvas = async (parentElement) => {
+                    const images = parentElement.querySelectorAll('img');
+                    for (const img of images) {
+                        // For logo, use an alternative approach - create text instead if needed
+                        if (img.src.includes('logo.png')) {
+                            // Either remove the image and replace with text, or leave it out
+                            const logoText = document.createElement('h3');
+                            logoText.textContent = "ECLOF KENYA";
+                            logoText.style.fontWeight = 'bold';
+                            logoText.style.color = '#006633';
+                            img.parentNode.replaceChild(logoText, img);
                         }
+                    }
+                };
+                
+                // Process the clone to replace images
+                convertImagesToCanvas(clone).then(() => {
+                    // Use html2canvas to create an image of the element
+                    html2canvas(clone, {
+                        scale: 2, // Higher scale for better quality
+                        useCORS: true, // Enable CORS for images 
+                        allowTaint: true, // Allow tainted canvas
+                        logging: true,
+                        onclone: function(clonedDoc) {
+                            console.log('Document cloned for PDF generation');
+                        }
+                    }).then(canvas => {
+                        console.log('Canvas generated, creating PDF...');
                         
-                        const pdf = new jspdf.jsPDF({
-                            orientation: 'portrait',
-                            unit: 'mm',
-                            format: 'a4'
-                        });
+                        // Remove the clone after rendering
+                        document.body.removeChild(clone);
                         
-                        const imgWidth = 210; // A4 width in mm
-                        const pageHeight = 297; // A4 height in mm
-                        const imgHeight = canvas.height * imgWidth / canvas.width;
+                        try {
+                            // Create the PDF
+                            const imgData = canvas.toDataURL('image/png');
+                            
+                            // Check if jspdf is available
+                            if (!window.jspdf || !window.jspdf.jsPDF) {
+                                throw new Error('jsPDF library not loaded properly');
+                            }
+                            
+                            const pdf = new jspdf.jsPDF({
+                                orientation: 'portrait',
+                                unit: 'mm',
+                                format: 'a4'
+                            });
+                            
+                            const imgWidth = 210; // A4 width in mm
+                            const pageHeight = 297; // A4 height in mm
+                            const imgHeight = canvas.height * imgWidth / canvas.width;
+                            
+                            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                            
+                            // Save the PDF with a meaningful filename
+                            const borrowerName = document.getElementById('name').value.trim() || 'borrower';
+                            const sanitizedName = borrowerName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                            const filename = `${sanitizedName}_profile.pdf`;
+                            
+                            pdf.save(filename);
+                            console.log('PDF saved successfully');
+                        } catch (pdfError) {
+                            console.error('Error creating PDF:', pdfError);
+                            alert('Error creating PDF: ' + pdfError.message);
+                        } finally {
+                            // Reset button state
+                            downloadBtn.textContent = originalText;
+                            downloadBtn.disabled = false;
+                        }
+                    }).catch(canvasError => {
+                        console.error('Error generating canvas for PDF:', canvasError);
+                        document.body.removeChild(clone);
+                        alert('Error generating PDF: ' + canvasError.message);
                         
-                        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-                        
-                        // Save the PDF with a meaningful filename
-                        const borrowerName = document.getElementById('name').value.trim() || 'borrower';
-                        const sanitizedName = borrowerName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                        const filename = `${sanitizedName}_profile.pdf`;
-                        
-                        pdf.save(filename);
-                        console.log('PDF saved successfully');
-                    } catch (pdfError) {
-                        console.error('Error creating PDF:', pdfError);
-                        alert('Error creating PDF: ' + pdfError.message);
-                    } finally {
                         // Reset button state
                         downloadBtn.textContent = originalText;
                         downloadBtn.disabled = false;
-                    }
-                }).catch(canvasError => {
-                    console.error('Error generating canvas for PDF:', canvasError);
-                    alert('Error generating PDF: ' + canvasError.message);
-                    
-                    // Reset button state
-                    downloadBtn.textContent = originalText;
-                    downloadBtn.disabled = false;
+                    });
                 });
             } catch (error) {
                 console.error('Error in PDF generation process:', error);
                 alert('Error generating PDF: ' + error.message);
+                
+                // Reset button state
+                const downloadBtn = document.getElementById('downloadPdf');
+                downloadBtn.textContent = 'Download as PDF';
+                downloadBtn.disabled = false;
             }
         }
     </script>
