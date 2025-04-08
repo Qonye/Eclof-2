@@ -6,7 +6,7 @@ const CONFIG = {
     API_PROVIDER: "openai", // Options: "openai", "anthropic", "cohere", "azure", "gemini", "grok", "deepseek", "local"
     
     // OpenAI Configuration
-OPENAI_API_KEY: "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",
+OPENAI_API_KEY: "YOUR_OPENAI_KEY_HERE",
 OPENAI_API_ENDPOINT: "https://api.openai.com/v1/chat/completions",
     OPENAI_MODEL: "gpt-4o",
     
